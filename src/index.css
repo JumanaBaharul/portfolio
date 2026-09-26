@@ -741,3 +741,291 @@ main { display: block; }
   .reveal { opacity: 1; transform: none; }
   .cloud { display: none; }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   THE DIVE LOG — deep additions. The water column itself:
+   a fixed backdrop that darkens sunlit → hadal, god rays on
+   the surface, marine snow and glowing fauna in the deep,
+   zone title cards, the diver's torch and exhale bubbles.
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── the water column (fixed, behind everything) ─────────── */
+.depth-dark {
+  position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(180deg, rgba(10, 52, 74, 0.55), rgba(6, 30, 48, 0.6));
+  will-change: opacity;
+}
+
+/* the page content sits above the water */
+.app { position: relative; z-index: 2; }
+.hud, .walker, .zone-banner { z-index: 200; }
+
+/* ── god rays: light shafts through the surface ──────────── */
+.godrays {
+  position: absolute; inset: 0; overflow: hidden; pointer-events: none;
+  opacity: 0.55;
+}
+.godrays span {
+  position: absolute; top: -8%;
+  width: clamp(50px, 7vw, 120px); height: 120%;
+  background: linear-gradient(180deg,
+    rgba(255, 255, 255, 0.4) 0%,
+    rgba(255, 255, 255, 0.12) 55%,
+    rgba(255, 255, 255, 0) 100%);
+  transform-origin: top center;
+  transform: rotate(14deg);
+  animation: ray-sway 7.5s ease-in-out infinite alternate;
+}
+.godrays span:nth-child(1) { left: 6%;  animation-delay: 0s;    animation-duration: 8.2s; }
+.godrays span:nth-child(2) { left: 24%; animation-delay: -2.4s; animation-duration: 6.9s; width: clamp(34px, 5vw, 84px); }
+.godrays span:nth-child(3) { left: 47%; animation-delay: -1.1s; animation-duration: 9.1s; }
+.godrays span:nth-child(4) { left: 66%; animation-delay: -3.6s; animation-duration: 7.4s; width: clamp(26px, 4vw, 64px); }
+.godrays span:nth-child(5) { left: 86%; animation-delay: -0.7s; animation-duration: 8.6s; }
+@keyframes ray-sway {
+  0%   { transform: rotate(11deg) translateX(-2vw); opacity: 0.55; }
+  50%  { opacity: 0.95; }
+  100% { transform: rotate(17deg) translateX(2vw); opacity: 0.5; }
+}
+/* the fixed backdrop copy sits behind the content, over the body */
+.depth-dark ~ .godrays, .backdrop-godrays { position: fixed; opacity: 0; z-index: -1; }
+
+/* ── marine snow: the deep's slow falling flecks ─────────── */
+.marine-snow {
+  position: fixed; inset: 0; z-index: 1; pointer-events: none;
+  opacity: 0;
+}
+.marine-snow span {
+  position: absolute; top: -2%; left: var(--x);
+  width: var(--s); height: var(--s);
+  background: rgba(210, 235, 255, 0.75);
+  border-radius: 50%;
+  animation: snowfall var(--d) linear infinite;
+  animation-delay: var(--dl);
+}
+@keyframes snowfall {
+  0%   { transform: translate(0, -4vh); }
+  100% { transform: translate(6vw, 104vh); }
+}
+
+/* ── deep-life fauna ─────────────────────────────────────── */
+.deeplife {
+  position: fixed; inset: 0; z-index: 1; pointer-events: none;
+}
+.dl-jelly {
+  position: absolute; top: 34%;
+  opacity: 0;
+  animation: jelly-bob 6s ease-in-out infinite;
+  transition: opacity 1.4s ease;
+  filter: drop-shadow(0 0 9px rgba(111, 227, 255, 0.55));
+}
+.dl-jelly:nth-of-type(odd) { animation-name: jelly-bob-alt; }
+@keyframes jelly-bob {
+  0%, 100% { margin-top: 0; }
+  50% { margin-top: -22px; }
+}
+@keyframes jelly-bob-alt {
+  0%, 100% { margin-top: -14px; }
+  50% { margin-top: 8px; }
+}
+
+.dl-shoal {
+  position: absolute; top: 18%; left: 0; width: 120px; height: 70px;
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+.dl-shoal-fish {
+  position: absolute; left: 0;
+  animation: shoal-wiggle 1.6s ease-in-out infinite alternate;
+}
+@keyframes shoal-wiggle { from { margin-left: 0; } to { margin-left: 12px; } }
+
+.dl-angler {
+  position: absolute; top: 55%; left: 0; right: 0;
+  opacity: 0;
+  transition: opacity 1.6s ease;
+}
+.dl-angler-track { position: absolute; inset: 0; }
+.dl-angler-inner {
+  position: relative;
+  transition: left 2.8s ease-in-out;
+  animation: angler-hover 5.5s ease-in-out infinite;
+}
+@keyframes angler-hover { 0%, 100% { margin-top: 0; } 50% { margin-top: -14px; } }
+.dl-angler-lure {
+  position: absolute; top: -7px; left: 58%;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--coin);
+  box-shadow: 0 0 14px 5px rgba(248, 184, 0, 0.55);
+  animation: lure-blink 2.6s ease-in-out infinite;
+}
+@keyframes lure-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+/* ── diver: torch + exhale bubbles ───────────────────────── */
+.walker-torch {
+  position: absolute; left: 58%; bottom: 62%;
+  width: 0; height: 0;
+  opacity: 0; pointer-events: none;
+  border-top: 26px solid transparent;
+  border-bottom: 26px solid transparent;
+  border-left: 120px solid rgba(255, 236, 170, 0.16);
+  filter: blur(1px) drop-shadow(0 0 18px rgba(255, 236, 170, 0.28));
+  transition: opacity 1.6s ease;
+  transform-origin: left center;
+}
+.walker-torch.is-on { opacity: 1; }
+
+.walker-bubbles {
+  position: absolute; left: 62%; bottom: 78%;
+  width: 20px; height: 40px; pointer-events: none;
+}
+.walker-bubbles i {
+  position: absolute; left: 0; bottom: 0;
+  width: 5px; height: 5px; border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  opacity: 0;
+}
+.walker-bubbles.is-exhale i { animation: bubble-rise 2s ease-out forwards; }
+.walker-bubbles.is-exhale i:nth-child(2) { animation-delay: 0.22s; left: 7px; width: 4px; height: 4px; }
+.walker-bubbles.is-exhale i:nth-child(3) { animation-delay: 0.45s; left: 13px; width: 6px; height: 6px; }
+@keyframes bubble-rise {
+  0%   { opacity: 0; transform: translate(0, 0) scale(0.7); }
+  18%  { opacity: 0.95; }
+  100% { opacity: 0; transform: translate(6px, -46px) scale(1.15); }
+}
+
+/* ── zone banner: expedition title card ──────────────────── */
+.zone-banner {
+  position: fixed; left: 0; right: 0; top: 34%;
+  z-index: 260;
+  display: flex; align-items: center; justify-content: center; gap: 20px;
+  padding: 18px 0;
+  pointer-events: none;
+  background: linear-gradient(90deg,
+    rgba(14, 42, 53, 0) 0%, rgba(14, 42, 53, 0.88) 22%,
+    rgba(14, 42, 53, 0.88) 78%, rgba(14, 42, 53, 0) 100%);
+  animation: zb-in 2.6s var(--ease) forwards;
+}
+.zone-banner .zb-line {
+  width: clamp(36px, 7vw, 110px); height: 3px;
+  background: var(--coin);
+  box-shadow: 0 0 12px rgba(248, 184, 0, 0.7);
+}
+.zone-banner .zb-depth {
+  font-family: var(--arcade); font-size: clamp(16px, 2.4vw, 24px);
+  color: var(--coin); letter-spacing: 0.22em;
+  text-shadow: 0 0 14px rgba(248, 184, 0, 0.55);
+}
+.zone-banner .zb-name {
+  font-family: var(--pixel); font-size: clamp(11px, 1.9vw, 19px);
+  color: #fff; letter-spacing: 0.14em;
+  text-shadow: 0 0 16px rgba(111, 227, 255, 0.65);
+  white-space: nowrap;
+}
+@keyframes zb-in {
+  0%   { opacity: 0; transform: translateY(26px); }
+  12%  { opacity: 1; transform: translateY(0); }
+  82%  { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-18px); }
+}
+
+/* ── zone theming: the page darkens as one body ──────────── */
+html[data-zone="crepus"] { --paper: #dceef3; --paper-2: #e9f5f8; }
+html[data-zone="midnight"] {
+  --paper: #22394b; --paper-2: #2c4658; --card: #3a586b;
+  --ink: #eaf6fb; --ink-2: #b8d4de; --muted: #8fb0bd;
+  --line: rgba(234, 246, 251, 0.16);
+  --sky-3: #16324a;
+  --brick: #d99a5b; --pipe-d: #35c98e;
+}
+html[data-zone="abyss"], html[data-zone="hadal"] {
+  --paper: #0d1524; --paper-2: #16203a; --card: #14213a;
+  --ink: #eef8ff; --ink-2: #a9c6d8; --muted: #68829b;
+  --line: rgba(238, 248, 255, 0.14);
+  --sky-3: #101b2e;
+  --brick: #d99a5b; --pipe-d: #35c98e;
+}
+
+/* --ink flips light for text, so surfaces painted WITH it get
+   pinned to the original dark ink (HUD bars, chips, title cards) */
+html[data-zone="midnight"] .sec-code,
+html[data-zone="midnight"] .role-chip,
+html[data-zone="midnight"] .block-tag,
+html[data-zone="midnight"] .cs-label,
+html[data-zone="abyss"] .sec-code,
+html[data-zone="abyss"] .role-chip,
+html[data-zone="abyss"] .block-tag,
+html[data-zone="abyss"] .cs-label,
+html[data-zone="hadal"] .sec-code,
+html[data-zone="hadal"] .role-chip,
+html[data-zone="hadal"] .block-tag,
+html[data-zone="hadal"] .cs-label { background: #0e2a35; }
+html[data-zone="midnight"] .hud,
+html[data-zone="abyss"] .hud,
+html[data-zone="hadal"] .hud { background: #0e2a35; }
+html[data-zone="abyss"] .hud,
+html[data-zone="hadal"] .hud { background: #050a14; }
+.panel-bar, .warp-bar { background: #0e2a35; }
+/* dark text sitting on gold chips/buttons */
+html[data-zone="midnight"] .nb-mark,
+html[data-zone="midnight"] .player-label,
+html[data-zone="midnight"] .btn-start,
+html[data-zone="midnight"] .clear-stamp,
+html[data-zone="midnight"] .blink-dot,
+html[data-zone="abyss"] .nb-mark,
+html[data-zone="abyss"] .player-label,
+html[data-zone="abyss"] .btn-start,
+html[data-zone="abyss"] .clear-stamp,
+html[data-zone="abyss"] .blink-dot,
+html[data-zone="hadal"] .nb-mark,
+html[data-zone="hadal"] .player-label,
+html[data-zone="hadal"] .btn-start,
+html[data-zone="hadal"] .clear-stamp,
+html[data-zone="hadal"] .blink-dot { color: #0e2a35; }
+html[data-zone="midnight"] .clear-channels a:hover,
+html[data-zone="abyss"] .clear-channels a:hover,
+html[data-zone="hadal"] .clear-channels a:hover { color: #0e2a35; }
+/* the "now diving" card keeps its identity without glaring */
+html[data-zone="midnight"] .course.is-playing,
+html[data-zone="abyss"] .course.is-playing,
+html[data-zone="hadal"] .course.is-playing { background: rgba(18, 42, 34, 0.88); }
+html[data-zone="midnight"] .course.is-playing .course-slot,
+html[data-zone="abyss"] .course.is-playing .course-slot,
+html[data-zone="hadal"] .course.is-playing .course-slot { background: #122a22; }
+/* availability chip glows instead of glaring */
+html[data-zone="midnight"] .clear-avail,
+html[data-zone="abyss"] .clear-avail,
+html[data-zone="hadal"] .clear-avail { background: rgba(16, 40, 32, 0.85); color: #5ed9a4; }
+/* the striped "first swim" board keeps its texture in the gloom */
+html[data-zone="midnight"] .course-start,
+html[data-zone="abyss"] .course-start,
+html[data-zone="hadal"] .course-start {
+  background: repeating-linear-gradient(135deg, rgba(22, 32, 58, 0.9) 0 14px, rgba(30, 42, 68, 0.9) 14px 28px);
+}
+html[data-zone="midnight"] .clear-next,
+html[data-zone="abyss"] .clear-next,
+html[data-zone="hadal"] .clear-next { color: #6fe3ff; }
+/* glowing accents pop harder in the dark */
+html[data-zone="midnight"] .sec-title em,
+html[data-zone="abyss"] .sec-title em,
+html[data-zone="hadal"] .sec-title em { color: #6fe3ff; text-shadow: 0 0 14px rgba(111, 227, 255, 0.55); }
+/* the walker strip and its scenery sink into the gloom */
+html[data-zone="crepus"] .walker-ground { filter: brightness(0.82); }
+html[data-zone="midnight"] .walker-ground { filter: brightness(0.5) saturate(0.7); }
+html[data-zone="abyss"] .walker-ground,
+html[data-zone="hadal"] .walker-ground { filter: brightness(0.34) saturate(0.5); }
+html[data-zone="abyss"] .walker,
+html[data-zone="hadal"] .walker { opacity: 0.85; }
+/* HUD reads depth even in the dark */
+html[data-zone="abyss"] .hud,
+html[data-zone="hadal"] .hud { background: #050a14; }
+/* the nav bar picks up the local water */
+html[data-zone="midnight"] .nav.is-scrolled { background: rgba(34, 57, 75, 0.92); }
+html[data-zone="abyss"] .nav.is-scrolled,
+html[data-zone="hadal"] .nav.is-scrolled { background: rgba(9, 17, 30, 0.92); }
+
+/* ── deep motion discipline ──────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .godrays span, .marine-snow span, .dl-jelly, .dl-shoal-fish,
+  .dl-angler-inner, .dl-angler-lure { animation: none !important; }
+}

@@ -271,6 +271,40 @@ export const HABITAT = [
   "k..kk......kk..k",
 ];
 
+// ── the deep ────────────────────────────────────────────────
+// ANGLERFISH — the abyss earns one resident with a lure.
+export const ANGLER = [
+  "...................vv.....",
+  "..................v..v....",
+  "...................vv.....",
+  "..............k..k........",
+  ".............kmkk.........",
+  "....kkkkkk...kw...........",
+  "..kkddddddkkkk............",
+  ".kddddwwdddddk............",
+  ".kdddwddwwdddk............",
+  ".kdddddddddddk............",
+  "..kkddddddddkk............",
+  "...kkddddddkk.............",
+  "....kddddddk..............",
+  "...kdk.kkk.kdk............",
+  "...kk........kk...........",
+]
+
+// JELLYGLOW — a midnight-zone jelly, lit from within.
+export const JELLYGLOW = [
+  "..kkkkkkkk..",
+  ".kvvvvvvvvk.",
+  "kvvwwwwwwvvk",
+  "kvwvvvvvvwvk",
+  "kvvvvvvvvvvk",
+  ".kvvvvvvvvk.",
+  ".k.v.vv.v.k.",
+  "...v.vv.v...",
+  "...v.v..v...",
+  "....v...v...",
+]
+
 // doubloon spin frames
 export const COIN_SPIN = [
   [

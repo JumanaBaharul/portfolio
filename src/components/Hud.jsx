@@ -1,5 +1,6 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { isEnabled, subscribe, toggle } from "../lib/sfx";
+import { subscribeDepth, getDepthState } from "../lib/zone";
 
 // ─────────────────────────────────────────────────────────────
 // Hud — the dive computer, pinned to the bottom of the viewport
@@ -9,11 +10,9 @@ import { isEnabled, subscribe, toggle } from "../lib/sfx";
 // habitat, and the bar fills as the log completes.
 // ─────────────────────────────────────────────────────────────
 
-const MAX_DEPTH = 6000; // metres, surface to the habitat
-
 export default function Hud({ tokens, total }) {
   const [elapsed, setElapsed] = useState(0);
-  const [depth, setDepth] = useState(0);
+  const [depth, setDepth] = useState(() => getDepthState().depth);
   const sound = useSyncExternalStore(subscribe, isEnabled, () => false);
 
   useEffect(() => {
@@ -21,16 +20,11 @@ export default function Hud({ tokens, total }) {
     return () => clearInterval(id);
   }, []);
 
+  // depth comes from the shared zone store — same number the
+  // backdrop, fauna and banner read, so the HUD never disagrees
   useEffect(() => {
-    const onScroll = () => {
-      const doc = document.documentElement;
-      const max = doc.scrollHeight - window.innerHeight;
-      const p = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
-      setDepth(Math.round(p * MAX_DEPTH));
-    };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    setDepth(getDepthState().depth);
+    return subscribeDepth((s) => setDepth(s.depth));
   }, []);
 
   const score = tokens * 200 + (tokens === total && total > 0 ? 1000 : 0);
@@ -59,7 +53,7 @@ export default function Hud({ tokens, total }) {
         </span>
         <span className="hud-item">
           <span className="hud-key">DEPTH</span>
-          <span className="hud-val">{depth}<i>m</i></span>
+          <span className="hud-val">{depth.toLocaleString()}<i>m</i></span>
         </span>
       </div>
 

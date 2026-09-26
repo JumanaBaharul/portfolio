@@ -9,9 +9,14 @@ import Levels from "./components/Levels";
 import Inventory from "./components/Inventory";
 import CourseClear from "./components/CourseClear";
 import CommandPalette from "./components/CommandPalette";
+import DepthBackdrop from "./components/DepthBackdrop";
+import DeepLife from "./components/DeepLife";
+import ZoneBanner from "./components/ZoneBanner";
 import { Reveal, SectionHead, BarChart } from "./components/ui";
 import { profile, method, stats, records, footer } from "./data/portfolio";
 import { goTo } from "./lib/scroll";
+import { updateDepth, subscribeDepth } from "./lib/zone";
+import { startDrone, setDroneDepth, isEnabled } from "./lib/sfx";
 
 const NAV = [
   { id: "practice", label: "1-1 Finds" },
@@ -75,6 +80,33 @@ export default function App() {
     };
   }, []);
 
+  // the depth engine: one scroll handler feeds the whole ocean
+  useEffect(() => {
+    updateDepth();
+    const onScroll = () => updateDepth();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    const off = subscribeDepth((s) => setDroneDepth(s.dark));
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      off();
+    };
+  }, []);
+
+  // returning visitors with sound remembered get their drone too —
+  // AudioContext needs a gesture, so arm it on the first interaction
+  useEffect(() => {
+    if (!isEnabled()) return undefined;
+    const arm = () => startDrone();
+    window.addEventListener("pointerdown", arm, { once: true });
+    window.addEventListener("keydown", arm, { once: true });
+    return () => {
+      window.removeEventListener("pointerdown", arm);
+      window.removeEventListener("keydown", arm);
+    };
+  }, []);
+
   // ⌘K / Ctrl-K
   useEffect(() => {
     const onKey = (e) => {
@@ -95,11 +127,14 @@ export default function App() {
 
   return (
     <div className="app">
+      <DepthBackdrop />
       <Nav onSearch={() => setSearch(true)} />
       <Walker />
       <Hud tokens={opened.length} total={records.length} />
 
       <World onStart={(id) => goTo(id || "practice")} />
+      <DeepLife />
+      <ZoneBanner />
 
       <main>
         {/* ── WORLD 1-1 ── */}

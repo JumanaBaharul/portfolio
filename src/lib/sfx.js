@@ -34,9 +34,16 @@ export function toggle() {
     /* private mode — the preference just won't persist */
   }
   listeners.forEach((fn) => fn());
-  if (enabled) play("start");
+  if (enabled) {
+    play("start");
+    startDrone();
+  } else {
+    stopDrone();
+  }
 }
 
+// toggle() calls play('start') immediately, which needs the AudioContext —
+// created inside a user gesture, so the browser allows it.
 // [frequency, seconds into the phrase, note length]
 const RECIPES = {
   coin: [[988, 0, 0.07], [1319, 0.07, 0.2]],
@@ -45,6 +52,8 @@ const RECIPES = {
   close: [[392, 0, 0.07], [294, 0.07, 0.11]],
   start: [[523, 0, 0.1], [659, 0.1, 0.1], [784, 0.2, 0.1], [1047, 0.3, 0.22]],
   clear: [[784, 0, 0.12], [1047, 0.12, 0.12], [1319, 0.24, 0.12], [1568, 0.36, 0.28]],
+  // sonar ping — a zone crossing
+  zone: [[1244, 0, 0.05], [1244, 0.16, 0.05]],
 };
 
 function ensure() {
@@ -80,4 +89,59 @@ export function play(name) {
     osc.start(t0 + at);
     osc.stop(t0 + at + dur + 0.03);
   }
+}
+
+// ── ambient deep-sea drone ──────────────────────────────────
+// Two detuned low oscillators through a lowpass filter, plus a
+// much slower LFO for swell. Started on first sound-on; fades in
+// as you pass 1000 m and out near the surface.
+let drone = null;
+
+export function startDrone() {
+  if (drone || !enabled) return;
+  const ac = ensure();
+  if (!ac) return;
+
+  const gain = ac.createGain();
+  gain.gain.value = 0;
+  gain.connect(ac.destination);
+
+  const filter = ac.createBiquadFilter();
+  filter.type = "lowpass";
+  filter.frequency.value = 220;
+  filter.connect(gain);
+
+  const oscs = [55, 55.7].map((f) => {
+    const o = ac.createOscillator();
+    o.type = "triangle";
+    o.frequency.value = f;
+    o.connect(filter);
+    o.start();
+    return o;
+  });
+
+  drone = { gain, oscs };
+}
+
+export function stopDrone() {
+  if (!drone) return;
+  const { gain, oscs } = drone;
+  try {
+    gain.gain.cancelScheduledValues(acNow());
+    gain.gain.value = 0;
+    oscs.forEach((o) => o.stop(acNow() + 0.05));
+  } catch { /* already stopped */ }
+  drone = null;
+}
+
+export function setDroneDepth(dark) {
+  if (!drone) return;
+  const g = Math.max(0, (dark - 0.28) / 0.5) * 0.05;
+  try {
+    drone.gain.gain.setTargetAtTime(g, acNow(), 0.6);
+  } catch { /* shutting down */ }
+}
+
+function acNow() {
+  return (ctx && ctx.currentTime) || 0;
 }

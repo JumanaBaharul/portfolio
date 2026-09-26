@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Pixel } from "./sprites";
 import { DIVER, BUSH, HILL, COIN_SPIN, SPIRE, FISH, JELLY, WEED } from "../data/sprites";
+import { subscribeDepth, getDepthState } from "../lib/zone";
 
 // ─────────────────────────────────────────────────────────────
 // Walker — the dive column, pinned above the HUD. The diver
@@ -38,6 +39,21 @@ export default function Walker() {
   const faceRef = useRef(null);
   const sceneryRefs = useRef([]);
   const coinRefs = useRef([]);
+  const bubblesRef = useRef(null);
+  const torchRef = useRef(null);
+  const bubbleT = useRef(0);
+
+  useEffect(() => {
+    const off = subscribeDepth((s) => {
+      if (torchRef.current) {
+        torchRef.current.classList.toggle("is-on", s.dark > 0.55);
+      }
+    });
+    if (torchRef.current) {
+      torchRef.current.classList.toggle("is-on", getDepthState().dark > 0.55);
+    }
+    return off;
+  }, []);
 
   useEffect(() => {
     let raf;
@@ -94,6 +110,20 @@ export default function Walker() {
         el.classList.toggle("is-spin", Math.floor(p * 90 + i) % 2 === 1);
       }
 
+      // ── exhale bubbles while the diver swims ──
+      if (bubblesRef.current) {
+        if (y !== lastY) {
+          if (t - bubbleT.current > 2100) {
+            bubbleT.current = t;
+            bubblesRef.current.classList.remove("is-exhale");
+            void bubblesRef.current.offsetWidth; // restart the animation
+            bubblesRef.current.classList.add("is-exhale");
+          }
+        } else {
+          bubblesRef.current.classList.remove("is-exhale");
+        }
+      }
+
       lastY = y;
       raf = requestAnimationFrame(tick);
     };
@@ -130,6 +160,10 @@ export default function Walker() {
       </div>
 
       <div className="walker-hero" ref={heroRef} style={{ left: "6%" }}>
+        <span className="walker-torch" ref={torchRef} aria-hidden="true" />
+        <span className="walker-bubbles" ref={bubblesRef} aria-hidden="true">
+          <i /><i /><i />
+        </span>
         <span className="walker-face" ref={faceRef}>
           <span className="walker-frame frame-a"><Pixel rows={DIVER[0]} size={3} /></span>
           <span className="walker-frame frame-b"><Pixel rows={DIVER[1]} size={3} /></span>

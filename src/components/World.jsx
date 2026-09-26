@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Pixel } from "./sprites";
 import { POD, COIN_SPIN, CORAL } from "../data/sprites";
 import { profile, title, stats } from "../data/portfolio";
@@ -45,6 +45,7 @@ function Clouds() {
 export default function World({ onStart }) {
   const [roleIdx, setRoleIdx] = useState(0);
   const [started, setStarted] = useState(false);
+  const raysRef = useRef(null);
 
   useEffect(() => {
     const id = setInterval(() => setRoleIdx((i) => (i + 1) % profile.roles.length), 2400);
@@ -54,6 +55,9 @@ export default function World({ onStart }) {
   return (
     <header className="world" id="top">
       <div className="world-sky" aria-hidden="true" />
+      <div className="godrays" ref={raysRef} aria-hidden="true">
+        <span /><span /><span /><span /><span />
+      </div>
       <Clouds />
 
       <div className="world-inner">
