@@ -186,7 +186,7 @@ export default function App() {
             />
             <p className="sb-caption">
               The bars above are how much of each principle is already in production code, and the four numbers
-              are the ones I'd defend in an interview.
+              are the measured figures behind them.
             </p>
           </div>
         </section>
